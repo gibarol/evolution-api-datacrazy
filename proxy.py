@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Proxy de compatibilidade: converte respostas v1.x para formato v2.x que o DataCrazy espera."""
-import json, urllib.request, urllib.error
+import json, urllib.request, urllib.error, sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 EVOLUTION = "http://localhost:8080"
@@ -59,20 +59,27 @@ class Handler(BaseHTTPRequestHandler):
         try:
             with urllib.request.urlopen(req, timeout=30) as r:
                 raw = r.read()
-                raw = transform(raw, self.path)
+                raw_transformed = transform(raw, self.path)
+                print(f"[{self.command}] {self.path} -> {r.status}", flush=True)
+                if raw != raw_transformed:
+                    print(f"  TRANSFORMADO: {raw_transformed[:300]}", flush=True)
+                else:
+                    print(f"  PASSTHROUGH: {raw[:300]}", flush=True)
                 self.send_response(r.status)
                 self.send_header('Content-Type', 'application/json')
-                self.send_header('Content-Length', str(len(raw)))
+                self.send_header('Content-Length', str(len(raw_transformed)))
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(raw)
+                self.wfile.write(raw_transformed)
         except urllib.error.HTTPError as e:
             b = e.read()
+            print(f"[{self.command}] {self.path} -> ERRO {e.code}: {b[:200]}", flush=True)
             self.send_response(e.code)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(b)
         except Exception as e:
+            print(f"[{self.command}] {self.path} -> EXCECAO: {e}", flush=True)
             self.send_response(500)
             self.end_headers()
             self.wfile.write(str(e).encode())
@@ -80,6 +87,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self): self.relay()
     def do_DELETE(self): self.relay()
     def do_OPTIONS(self):
+        print(f"[OPTIONS] {self.path}", flush=True)
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Headers', '*')
@@ -94,5 +102,5 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     s = HTTPServer(('0.0.0.0', 8090), Handler)
-    print('Proxy v1->v2 rodando na porta 8090')
+    print('Proxy v1->v2 rodando na porta 8090 (com debug)', flush=True)
     s.serve_forever()
