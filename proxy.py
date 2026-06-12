@@ -75,6 +75,21 @@ def transform_request(data, path, method):
         except Exception as e:
             print(f"  [REQ TRANSFORM ERROR] {e}", flush=True)
 
+    # POST /message/sendText/{name} — v2.x: {"text":"..."}, v1.x: {"textMessage":{"text":"..."}}
+    if '/message/sendText' in path and method == 'POST':
+        try:
+            parsed = json.loads(data)
+            if 'text' in parsed and 'textMessage' not in parsed:
+                v1_body = {
+                    "number": parsed.get('number', ''),
+                    "options": {"delay": 1200, "presence": "composing"},
+                    "textMessage": {"text": parsed['text']},
+                }
+                print(f"  [REQ TRANSFORM] sendText v2->v1: {parsed['text'][:40]}", flush=True)
+                return json.dumps(v1_body).encode()
+        except Exception as e:
+            print(f"  [REQ TRANSFORM ERROR] sendText: {e}", flush=True)
+
     return data
 
 
