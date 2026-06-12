@@ -6,10 +6,13 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 EVOLUTION = "http://localhost:8080"
 
 def transform(data, path):
-    if '/instance/fetchInstances' not in path:
-        return data
     try:
         parsed = json.loads(data)
+    except Exception:
+        return data
+
+    # GET /instance/fetchInstances
+    if '/instance/fetchInstances' in path:
         if not isinstance(parsed, list):
             return data
         out = []
@@ -19,7 +22,7 @@ def transform(data, path):
             out.append({
                 "id": inst.get('instanceId', ''),
                 "name": inst.get('instanceName', ''),
-                "connectionStatus": inst.get('status', 'close'),
+                "connectionStatus": inst.get('status', inst.get('connectionStatus', 'close')),
                 "ownerJid": owner or None,
                 "profileName": inst.get('profileName', None),
                 "profilePicUrl": inst.get('profilePictureUrl', None),
@@ -31,8 +34,21 @@ def transform(data, path):
                 "disconnectionObject": None,
             })
         return json.dumps(out).encode()
-    except Exception:
-        return data
+
+    # GET /instance/connectionState/{name}
+    if '/instance/connectionState' in path:
+        inst = parsed.get('instance', parsed)
+        state = inst.get('state', inst.get('connectionStatus', 'close'))
+        result = {
+            "instance": {
+                "instanceName": inst.get('instanceName', ''),
+                "state": state,
+                "connectionStatus": state,
+            }
+        }
+        return json.dumps(result).encode()
+
+    return data
 
 class Handler(BaseHTTPRequestHandler):
     def relay(self, body=None):
