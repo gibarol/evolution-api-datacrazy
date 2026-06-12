@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  evolution-api:
+    image: atendai/evolution-api:latest
+    container_name: evolution-api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_URL: "http://2.25.201.30:8080"
+      AUTHENTICATION_TYPE: "apikey"
+      AUTHENTICATION_API_KEY: "91274760b5761403dfb4dfa245ea283631d6c7b4c0e74b0e0ea76fbefb913be9"
+      AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES: "true"
+      DATABASE_PROVIDER: "postgresql"
+      DATABASE_URL: "postgresql://neondb_owner:npg_ijRyQTJf59eG@ep-steep-dream-aj82sze3.c-3.us-east-2.aws.neon.tech/neondb?sslmode=require"
+      DATABASE_CONNECTION_URI: "postgresql://neondb_owner:npg_ijRyQTJf59eG@ep-steep-dream-aj82sze3.c-3.us-east-2.aws.neon.tech/neondb?sslmode=require"
+      DATABASE_CONNECTION_CLIENT_NAME: "evolution_api"
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "true"
+      DATABASE_SAVE_MESSAGE_UPDATE: "true"
+      DATABASE_SAVE_DATA_CONTACTS: "true"
+      DATABASE_SAVE_DATA_CHATS: "true"
+      DATABASE_SAVE_DATA_LABELS: "true"
+      DATABASE_SAVE_DATA_HISTORIC: "true"
+      CACHE_REDIS_ENABLED: "false"
+      CACHE_LOCAL_ENABLED: "true"
+      DEL_INSTANCE: "false"
+      QRCODE_LIMIT: "30"
+      CONFIG_SESSION_PHONE_CLIENT: "DataCrazy"
+      CONFIG_SESSION_PHONE_NAME: "Chrome"
+      LOG_LEVEL: "ERROR,WARN,DEBUG,INFO,LOG,VERBOSE,DARK,WEBHOOKS"
+      LOG_COLOR: "true"
+      LOG_BAILEYS: "error"
+    volumes:
+      - evolution_instances:/evolution/instances
+      - evolution_store:/evolution/store
+
+volumes:
+  evolution_instances:
+  evolution_store:
