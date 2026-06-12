@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   evolution-api:
-    image: atendai/evolution-api:v1.8.7
+    image: evoapicloud/evolution-api:v2.3.4
     container_name: evolution-api
     restart: always
     ports:
